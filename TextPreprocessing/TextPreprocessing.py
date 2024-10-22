@@ -119,4 +119,13 @@ wordcloud.to_file("wordcloud.png")  # you can save image to your project file as
 
 # ###########################################################
 # 4. Word Cloud by Templates
-tr_mask = np.array(Image.open(""))
+tr_mask = np.array(Image.open("TR_flag.jpg"))
+
+wordcloud = WordCloud(max_words=1000,
+                      background_color="white",
+                      mask=tr_mask,
+                      ).generate(text)
+plt.figure()
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis("off")
+plt.show()
