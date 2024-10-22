@@ -1,4 +1,8 @@
 # ###########################################################
+# ##############  TEXT PREPROCESSING  #######################
+# ###########################################################
+
+# ###########################################################
 # Introduction to Text Mining and Natural Language Processing
 # ###########################################################
 
@@ -10,8 +14,13 @@
 
 
 from warnings import filterwarnings
+
+import numpy as np
+from wordcloud import WordCloud
+from PIL import Image
 import pandas as pd
 from nltk.corpus import stopwords
+import matplotlib.pyplot as plt
 
 filterwarnings('ignore')
 pd.set_option('display.max_columns', None)
@@ -72,3 +81,42 @@ nltk.download("wordnet")
 
 df['reviewText'] = df['reviewText'].apply(lambda x: " ".join([Word(word).lemmatize() for word in x.split()]))
 print(df['reviewText'])  # capabilities -> capability, things -> thing...
+
+
+# ###########################################################
+# ###########  TEXT VISUALIZATION  ##########################
+# ###########################################################
+# ###########################################################
+# 1. Calculating Term Frequency
+tf = df["reviewText"].apply(lambda x: pd.value_counts(x.split(" "))).sum(axis=0).reset_index()
+tf.columns = ["words", "tf"]
+print(tf)
+
+print(tf.sort_values("tf", ascending=False))
+
+# ###########################################################
+# 2. Bar Plot
+tf[tf["tf"] > 500].plot.bar(x="words", y="tf")
+plt.show()
+
+# ###########################################################
+# 3. Word Cloud
+text = " ".join(i for i in df.reviewText)  # Agg all rows to a text
+wordcloud = WordCloud().generate(text)
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis("off")
+plt.show()
+
+wordcloud = WordCloud(max_font_size=50,
+                      max_words=100,
+                      background_color="white").generate(text)
+plt.figure()
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis("off")
+plt.show()
+
+wordcloud.to_file("wordcloud.png")  # you can save image to your project file as wanted format
+
+# ###########################################################
+# 4. Word Cloud by Templates
+tr_mask = np.array(Image.open(""))
