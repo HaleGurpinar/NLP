@@ -16,6 +16,7 @@
 from warnings import filterwarnings
 
 import numpy as np
+from nltk.sentiment import SentimentIntensityAnalyzer
 from wordcloud import WordCloud
 from PIL import Image
 import pandas as pd
@@ -86,6 +87,7 @@ print(df['reviewText'])  # capabilities -> capability, things -> thing...
 # ###########################################################
 # ###########  TEXT VISUALIZATION  ##########################
 # ###########################################################
+
 # ###########################################################
 # 1. Calculating Term Frequency
 tf = df["reviewText"].apply(lambda x: pd.value_counts(x.split(" "))).sum(axis=0).reset_index()
@@ -131,3 +133,21 @@ plt.figure(figsize=[10, 10])
 plt.imshow(wordcloud, interpolation="bilinear")
 plt.axis("off")
 plt.show()
+
+# ###########################################################
+# ###########  SENTIMENT MODELLING  #########################
+# ###########################################################
+
+
+# ###########################################################
+# 1. Sentiment Analysis
+nltk.download('vader_lexicon')
+sia = SentimentIntensityAnalyzer()
+
+print(sia.polarity_scores("The film was awesome"))  # Key is compound. If compound >0 positive sentence else negative.
+print(sia.polarity_scores("I like this music but it is not good as the other one"))  # negative sentence example
+
+df["reviewText"][0:10].apply(lambda x: sia.polarity_scores(x))  # scores for all rows but dictionary structure
+print(df["reviewText"][0:10].apply(lambda x: sia.polarity_scores(x)["compound"]))
+
+df["polarity_score"] = df["reviewText"][0:10].apply(lambda x: sia.polarity_scores(x)["compound"])  # permanent modifying
