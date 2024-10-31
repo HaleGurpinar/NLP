@@ -124,8 +124,10 @@ tr_mask = np.array(Image.open("TR_flag.jpg"))
 wordcloud = WordCloud(max_words=1000,
                       background_color="white",
                       mask=tr_mask,
-                      ).generate(text)
-plt.figure()
+                      contour_width=3,
+                      contour_color="firebrick")
+wordcloud.generate(text)
+plt.figure(figsize=[10, 10])
 plt.imshow(wordcloud, interpolation="bilinear")
 plt.axis("off")
 plt.show()
