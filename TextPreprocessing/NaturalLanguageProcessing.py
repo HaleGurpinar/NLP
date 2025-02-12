@@ -22,6 +22,7 @@ from PIL import Image
 import pandas as pd
 from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
+from sklearn import preprocessing
 
 filterwarnings('ignore')
 pd.set_option('display.max_columns', None)
@@ -140,7 +141,7 @@ plt.show()
 
 
 # ###########################################################
-# 1. Sentiment Analysis
+# 1. Sentiment Analysis *****************************
 nltk.download('vader_lexicon')
 sia = SentimentIntensityAnalyzer()
 
@@ -151,3 +152,17 @@ df["reviewText"][0:10].apply(lambda x: sia.polarity_scores(x))  # scores for all
 print(df["reviewText"][0:10].apply(lambda x: sia.polarity_scores(x)["compound"]))
 
 df["polarity_score"] = df["reviewText"][0:10].apply(lambda x: sia.polarity_scores(x)["compound"])  # permanent modifying
+
+# ###########################################################Important###################################################
+# 1. Future Engineering
+df["reviewText"][0:10].apply(lambda x: "pos" if sia.polarity_scores(x)["compound"] > 0 else "neg")
+
+df["sentiment_label"] = df["reviewText"].apply(lambda x: "pos" if sia.polarity_scores(x)["compound"] > 0 else "neg")
+print(df["sentiment_label"])
+print(df["sentiment_label"].value_counts())
+print(df.groupby("sentiment_label")["overall"].mean())
+df["sentiment_label"] = preprocessing.LabelEncoder().fit_transform(df["sentiment_label"])
+
+y = df["sentiment_label"]
+X = df["reviewText"]
+
