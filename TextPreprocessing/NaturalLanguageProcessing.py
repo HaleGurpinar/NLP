@@ -166,3 +166,45 @@ df["sentiment_label"] = preprocessing.LabelEncoder().fit_transform(df["sentiment
 y = df["sentiment_label"]
 X = df["reviewText"]
 
+# ##############################################################################################################
+# Count Vectors
+
+# Count Vectors: frequency representations
+# TF-IDF Vectors: normalized frequency representations
+# Word Embeddings (Word2Vec, GloVe, BERT vs.)
+
+# words - numeric repr. of words
+
+# characters - numeric repr. of characters
+
+# ngram
+a = """I'm gonna show this instance in a longer text to be able to understand. 
+N-grams represent combinations of words used together and are used to generate features."""
+print(TextBlob(a).ngrams(5))
+
+# Count Vector
+from  sklearn.feature_extraction.text import CountVectorizer
+
+# Aim: Vectorized text - every rows
+
+corpus = ['This is the first document.',
+          'This document is the second document.',
+          'And this is the third one.',
+          'Is this the first document?']
+
+# word frequency
+vectorizer =CountVectorizer()
+X_c = vectorizer.fit_transform(corpus)
+print(vectorizer.get_feature_names_out()) # unique names(words) in corpus  -- columns for array
+print(X_c.toarray())
+
+# n-gram frequency
+vectorizer2 =CountVectorizer(analyzer='word', ngram_range=(2, 2))
+X_n = vectorizer2.fit_transform(corpus)
+print(vectorizer2.get_feature_names_out())
+print(X_n.toarray())
+
+vectorizer =CountVectorizer()
+X_count = vectorizer.fit_transform(X)
+print(vectorizer.get_feature_names_out()[10:15]) # unique names(words) in corpus  -- columns for array
+print(X_count.toarray()[10:15])
