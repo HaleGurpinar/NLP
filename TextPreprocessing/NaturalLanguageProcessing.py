@@ -208,3 +208,14 @@ vectorizer =CountVectorizer()
 X_count = vectorizer.fit_transform(X)
 print(vectorizer.get_feature_names_out()[10:15]) # unique names(words) in corpus  -- columns for array
 print(X_count.toarray()[10:15])
+
+# ###########################################################
+# 1. TF-IDF Method (Term Frequency - Inverse Document Frequency)**************Important***************
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+tf_idf_word_vectorizer = TfidfVectorizer()
+X_tf_idf_word = tf_idf_word_vectorizer.fit_transform(X)
+
+tf_idf_ngram_vectorizer = TfidfVectorizer(ngram_range=(2, 3))
+X_tf_idf_ngram = tf_idf_ngram_vectorizer.fit_transform(X)
