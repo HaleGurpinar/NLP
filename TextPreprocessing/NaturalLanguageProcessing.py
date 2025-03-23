@@ -1,5 +1,5 @@
 # ###########################################################
-# ##############  TEXT PREPROCESSING  #######################
+# ############## 1-) TEXT PREPROCESSING  #######################
 # ###########################################################
 
 # ###########################################################
@@ -17,6 +17,9 @@ from warnings import filterwarnings
 
 import numpy as np
 from nltk.sentiment import SentimentIntensityAnalyzer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
 from wordcloud import WordCloud
 from PIL import Image
 import pandas as pd
@@ -86,7 +89,7 @@ print(df['reviewText'])  # capabilities -> capability, things -> thing...
 
 
 # ###########################################################
-# ###########  TEXT VISUALIZATION  ##########################
+# ########### 2-) TEXT VISUALIZATION  ##########################
 # ###########################################################
 
 # ###########################################################
@@ -136,7 +139,7 @@ plt.axis("off")
 plt.show()
 
 # ###########################################################
-# ###########  SENTIMENT MODELLING  #########################
+# ########### 3-) SENTIMENT MODELLING  #########################
 # ###########################################################
 
 
@@ -209,8 +212,8 @@ X_count = vectorizer.fit_transform(X)
 print(vectorizer.get_feature_names_out()[10:15]) # unique names(words) in corpus  -- columns for array
 print(X_count.toarray()[10:15])
 
-# ###########################################################
-# 1. TF-IDF Method (Term Frequency - Inverse Document Frequency)**************Important***************
+# #####################################################################################################
+#  TF-IDF Method (Term Frequency - Inverse Document Frequency)**************Important***************
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -219,3 +222,36 @@ X_tf_idf_word = tf_idf_word_vectorizer.fit_transform(X)
 
 tf_idf_ngram_vectorizer = TfidfVectorizer(ngram_range=(2, 3))
 X_tf_idf_ngram = tf_idf_ngram_vectorizer.fit_transform(X)
+
+############################################################################
+# Logistic Regression
+log_model = LogisticRegression().fit(X_tf_idf_word, y)  # create by word frequency
+
+print(cross_val_score(log_model,
+                X_tf_idf_word,
+                y,
+                scoring="accuracy",
+                cv=5).mean())  # Result: 0.830111902339776 -> % 83 successful prediction
+
+new_review = pd.Series("this product is great")
+new_review = TfidfVectorizer().fit(X).transform(new_review)
+print(log_model.predict(new_review))                      # positive review so 1
+new_review2 = pd.Series("look at that shit very bad")
+new_review2 = TfidfVectorizer().fit(X).transform(new_review2)
+print(log_model.predict(new_review2))                     # negative review so 0
+
+random_review = pd.Series(df["reviewText"].sample(1).values)
+print(random_review)                                 # pull random sample from reviewText
+random_review = TfidfVectorizer().fit(X).transform(random_review)
+print(log_model.predict(random_review))                  # check random sample pos. or neg.
+
+############################################################################
+# Random Forests
+rf_model = RandomForestClassifier().fit(X_count, y)                   # Count Vectors
+print(cross_val_score(rf_model, X_count, y, cv=5, n_jobs=-1).mean())  # ½84 successful classify
+
+rf_model = RandomForestClassifier().fit(X_tf_idf_word, y)                   # TF - IDF Word-Level
+print(cross_val_score(rf_model, X_tf_idf_word, y, cv=5, n_jobs=-1).mean())  # ½82 successful classify
+
+rf_model = RandomForestClassifier().fit(X_tf_idf_ngram, y)                   # TF - IDF N-GRAM
+print(cross_val_score(rf_model, X_tf_idf_ngram, y, cv=5, n_jobs=-1).mean())  # ½78 successful classify
