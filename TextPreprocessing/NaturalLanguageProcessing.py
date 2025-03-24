@@ -1,10 +1,14 @@
+
+
+# #################################### NATURAL LANGUAGE PROCESSING (NLP) ################################################
+
 # ###########################################################
 # ############## 1-) TEXT PREPROCESSING  #######################
 # ###########################################################
 
 # ###########################################################
 # Introduction to Text Mining and Natural Language Processing
-# ###########################################################
+
 
 # Sentiment Analysis and Sentiment Modeling for Amazon Reviews
 
@@ -19,7 +23,7 @@ import numpy as np
 from nltk.sentiment import SentimentIntensityAnalyzer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, GridSearchCV
 from wordcloud import WordCloud
 from PIL import Image
 import pandas as pd
@@ -52,6 +56,7 @@ print(df)
 # ###########################################################
 # 4. Stop Words(get rid of stop words(common words as "is, that, are, of, ..." ))
 import nltk
+
 nltk.download('stopwords')
 sw = stopwords.words('english')
 print(sw)
@@ -82,11 +87,11 @@ print(df['reviewText'].apply(lambda x: TextBlob(x).words).head())
 # 7. Lemmatization(reduction words to original form (books -> book))  #stemming(generally not using)
 import nltk
 from textblob import Word
+
 nltk.download("wordnet")
 
 df['reviewText'] = df['reviewText'].apply(lambda x: " ".join([Word(word).lemmatize() for word in x.split()]))
 print(df['reviewText'])  # capabilities -> capability, things -> thing...
-
 
 # ###########################################################
 # ########### 2-) TEXT VISUALIZATION  ##########################
@@ -186,7 +191,7 @@ N-grams represent combinations of words used together and are used to generate f
 print(TextBlob(a).ngrams(5))
 
 # Count Vector
-from  sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 
 # Aim: Vectorized text - every rows
 
@@ -196,20 +201,20 @@ corpus = ['This is the first document.',
           'Is this the first document?']
 
 # word frequency
-vectorizer =CountVectorizer()
+vectorizer = CountVectorizer()
 X_c = vectorizer.fit_transform(corpus)
-print(vectorizer.get_feature_names_out()) # unique names(words) in corpus  -- columns for array
+print(vectorizer.get_feature_names_out())  # unique names(words) in corpus  -- columns for array
 print(X_c.toarray())
 
 # n-gram frequency
-vectorizer2 =CountVectorizer(analyzer='word', ngram_range=(2, 2))
+vectorizer2 = CountVectorizer(analyzer='word', ngram_range=(2, 2))
 X_n = vectorizer2.fit_transform(corpus)
 print(vectorizer2.get_feature_names_out())
 print(X_n.toarray())
 
-vectorizer =CountVectorizer()
+vectorizer = CountVectorizer()
 X_count = vectorizer.fit_transform(X)
-print(vectorizer.get_feature_names_out()[10:15]) # unique names(words) in corpus  -- columns for array
+print(vectorizer.get_feature_names_out()[10:15])  # unique names(words) in corpus  -- columns for array
 print(X_count.toarray()[10:15])
 
 # #####################################################################################################
@@ -228,30 +233,49 @@ X_tf_idf_ngram = tf_idf_ngram_vectorizer.fit_transform(X)
 log_model = LogisticRegression().fit(X_tf_idf_word, y)  # create by word frequency
 
 print(cross_val_score(log_model,
-                X_tf_idf_word,
-                y,
-                scoring="accuracy",
-                cv=5).mean())  # Result: 0.830111902339776 -> % 83 successful prediction
+                      X_tf_idf_word,
+                      y,
+                      scoring="accuracy",
+                      cv=5).mean())  # Result: 0.830111902339776 -> % 83 successful prediction
 
 new_review = pd.Series("this product is great")
 new_review = TfidfVectorizer().fit(X).transform(new_review)
-print(log_model.predict(new_review))                      # positive review so 1
+print(log_model.predict(new_review))  # positive review so 1
 new_review2 = pd.Series("look at that shit very bad")
 new_review2 = TfidfVectorizer().fit(X).transform(new_review2)
-print(log_model.predict(new_review2))                     # negative review so 0
+print(log_model.predict(new_review2))  # negative review so 0
 
 random_review = pd.Series(df["reviewText"].sample(1).values)
-print(random_review)                                 # pull random sample from reviewText
+print(random_review)  # pull random sample from reviewText
 random_review = TfidfVectorizer().fit(X).transform(random_review)
-print(log_model.predict(random_review))                  # check random sample pos. or neg.
+print(log_model.predict(random_review))  # check random sample pos. or neg.
 
 ############################################################################
 # Random Forests
-rf_model = RandomForestClassifier().fit(X_count, y)                   # Count Vectors
+rf_model = RandomForestClassifier().fit(X_count, y)  # Count Vectors
 print(cross_val_score(rf_model, X_count, y, cv=5, n_jobs=-1).mean())  # ½84 successful classify
 
-rf_model = RandomForestClassifier().fit(X_tf_idf_word, y)                   # TF - IDF Word-Level
+rf_model = RandomForestClassifier().fit(X_tf_idf_word, y)  # TF - IDF Word-Level
 print(cross_val_score(rf_model, X_tf_idf_word, y, cv=5, n_jobs=-1).mean())  # ½82 successful classify
 
-rf_model = RandomForestClassifier().fit(X_tf_idf_ngram, y)                   # TF - IDF N-GRAM
+rf_model = RandomForestClassifier().fit(X_tf_idf_ngram, y)  # TF - IDF N-GRAM
 print(cross_val_score(rf_model, X_tf_idf_ngram, y, cv=5, n_jobs=-1).mean())  # ½78 successful classify
+
+# ######################################################################
+# ########### 4-) HYPERPARAMETER OPTIMIZATION  #########################
+# ######################################################################
+
+rf_model = RandomForestClassifier(random_state=17)
+rf_params = {"max_depth": [8, None],
+             "max_features": [7, "auto"],
+             "min_samples_split": [2, 5, 8],
+             "n_estimators": [100, 200]}
+rf_best_grid = GridSearchCV(rf_model,
+                            rf_params,
+                            cv=5,
+                            n_jobs=-1,
+                            verbose=1).fit(X_count, y)
+print(rf_best_grid.best_params_)                       # print pre-def values
+
+rf_final = rf_model.set_params(**rf_best_grid.best_params_, random_state=17).fit(X_count, y)
+print(cross_val_score(rf_model, X_count, y, cv=5, n_jobs=-1).mean())  # ½81 successful
